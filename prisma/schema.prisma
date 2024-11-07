@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Service {
+  id          String        @id @default(uuid())
+  title       String
+  description String
+  link        String?
+  icon        String
+  forms       Form[]
+  Application Application[]
+}
+
+model Form {
+  id                      String            @id @default(uuid())
+  title                   String
+  description             String
+  areQuestionsRequired    Boolean
+  conditionalQuestions    Json
+  staticQuestions         Json
+  isDocumentationRequired Boolean
+  documentation           String[]
+  isPaymentNeeded         Boolean
+  amount                  Decimal?
+  isNoteNeeded            Boolean
+  serviceId               String
+  service                 Service           @relation(fields: [serviceId], references: [id])
+  ApplicationForm         ApplicationForm[]
+
+  customField CustomField[]
+}
+
+model Response {
+  id                String          @id @default(uuid())
+  applicationFormId String
+  applicationForm   ApplicationForm @relation(fields: [applicationFormId], references: [id])
+  userId            String
+  user              User            @relation(fields: [userId], references: [id])
+  answers           Json
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model User {
+  id           String        @id @default(uuid())
+  firstname    String
+  lastname     String
+  email        String        @unique
+  password     String
+  username     String
+  roleId       Int
+  role         Role          @relation(fields: [roleId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  isVerified   Boolean
+  isBlocked    Boolean
+  applications Application[]
+  requestLogs  RequestLog[]
+  accounts     Account[]
+  sessions     Session[]
+  Response     Response[]
+
+  Notification Notification[]
+}
+
+model Role {
+  id    Int    @id @unique //1 for user, 2 for admin
+  name  String @unique
+  users User[]
+}
+
+model Account {
+  id                 String    @id @default(uuid())
+  userId             String
+  providerType       String
+  providerId         String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  accessTokenExpires DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  user               User      @relation(fields: [userId], references: [id])
+
+  @@unique([providerId, providerAccountId])
+}
+
+model VerificationRequest {
+  id         String   @id @default(uuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, token])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  expires      DateTime
+  sessionToken String   @unique
+  accessToken  String   @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id])
+}
+
+model Application {
+  id                    String            @id @default(uuid())
+  title                 String
+  status                String
+  statusColor           String
+  deadline              DateTime?
+  paymentDetails        PaymentDetails[] // Many payment details for an application
+  forms                 ApplicationForm[]
+  documentationUploaded String[]
+  userId                String
+  user                  User              @relation(fields: [userId], references: [id])
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  serviceId             String
+  service               Service           @relation(fields: [serviceId], references: [id])
+  totalAmount           Float? // Total amount calculated based on services
+  additionalInfo        Json?  //for additional informtion
+}
+
+model PaymentDetails {
+  id               String      @id @default(uuid())
+  amount           Decimal // Sum of all form amounts attached to services in the application
+  GST              Decimal
+  applicationId    String
+  application      Application @relation(fields: [applicationId], references: [id])
+  paymentStatus    String // Payment status: Pending, Completed, etc.
+  paymentMethod    String // Payment method: Credit Card, PayPal, etc.
+  isPartialPayment Boolean     @default(false) // To mark partial payments
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+}
+
+model File {
+  id                String          @id @default(uuid())
+  applicationFormId String
+  applicationForm   ApplicationForm @relation(fields: [applicationFormId], references: [id])
+  fileName          String          @db.VarChar(255)
+  documentation     String
+  mimeType          String          @db.VarChar(255)
+  filePath          String          @db.Text
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model ApplicationForm {
+  id            String      @id @default(uuid())
+  applicationId String
+  formId        String
+  application   Application @relation(fields: [applicationId], references: [id])
+  form          Form        @relation(fields: [formId], references: [id])
+  File          File[]
+  Response      Response[]
+}
+
+model RequestLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  endpoint  String
+  method    String
+  timestamp DateTime @default(now())
+}
+
+model CustomField {
+  id  String @id @default(uuid())
+  formId String
+  form Form @relation(fields: [formId], references: [id])
+  fieldName  String
+  fieldType String
+  fieldValue Json
+}
+
+model Notification{
+  id String @id @default(uuid())
+  userId String
+  user User @relation(fields:[userId],references:[id])
+  message String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+}
