@@ -1,5 +1,3 @@
-// interfaces.ts
-
 import { InputJsonValue } from "@prisma/client/runtime/library";
 
 export interface Service {
@@ -35,9 +33,20 @@ export interface Form {
 export interface Response {
   id: string;
   formId: string;
-  Form: Form;
+  Form?: Form;
   responseData: InputJsonValue; // JSON input
-  s3Url: string;
+  s3Url: string; // URL for form response data JSON in S3
+  createdAt: Date;
+  Attachments: Attachment[]; // Association with Attachments
+}
+
+export interface Attachment {
+  id: string;
+  responseId: string;
+  Response?: Response;
+  fileName: string; // Original name of the file
+  fileUrl: string; // URL to the file stored in S3
+  fileType: string; // MIME type (e.g., image/jpeg, application/pdf)
   createdAt: Date;
 }
 
@@ -103,7 +112,18 @@ export interface FormTemplate {
   fields: InputJsonValue; // JSON for form fields structure
   createdAt: Date;
 }
+
 export type FormCreateData = Omit<
   Form,
   "id" | "Service" | "Responses" | "CustomFields" | "ApplicationForms" | "Application"
 >;
+
+export interface SubmitFormInput {
+  formId: string;
+  formData: Record<string, any>;
+  attachments: Array<{
+    fileName: string;
+    fileContent: Buffer;
+    fileType: string;
+  }>
+}

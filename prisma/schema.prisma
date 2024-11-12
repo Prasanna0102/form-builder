@@ -1,8 +1,5 @@
-
-// Corrected schema.prisma for the form builder project
-
 datasource db {
-  provider = "postgresql"
+  provider = "postgresql" // Or your database provider
   url      = env("DATABASE_URL")
 }
 
@@ -10,100 +7,91 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// Service model for filtering forms by service type
 model Service {
-  id          String      @id @default(cuid())
-  title       String
-  description String
-  link        String?
-  icon        String
-  Forms       Form[]
-  Applications Application[]
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  link          String?
+  icon          String
+  Forms         Form[]
+  Applications  Application[]
 }
 
-// Form model for form metadata and structure
 model Form {
-  id                    String         @id @default(cuid())
-  title                 String
-  description           String
-  areQuestionsRequired  Boolean
-  conditionalQuestions  Json
-  staticQuestions       Json
+  id                   String          @id @default(uuid())
+  title                String
+  description          String
+  areQuestionsRequired Boolean
+  conditionalQuestions Json
+  staticQuestions      Json
   isDocumentationRequired Boolean
-  documentation         String[]
-  isPaymentNeeded       Boolean
-  amount                Decimal?
-  isNoteNeeded          Boolean
-  serviceId             String
-  Service               Service        @relation(fields: [serviceId], references: [id])
-  Responses             Response[]
-  CustomFields          CustomField[]
-  ApplicationForms      ApplicationForm[]  // Adjusted reference to ApplicationForm
-
-  Application Application[]
+  documentation        String[]
+  isPaymentNeeded      Boolean
+  amount               Float?
+  isNoteNeeded         Boolean
+  serviceId            String
+  Service              Service         @relation(fields: [serviceId], references: [id])
+  Responses            Response[]
+  CustomFields         CustomField[]
+  ApplicationForms     ApplicationForm[]
+  Application          Application[]
 }
 
-// Response model to store client submissions and S3 URLs
 model Response {
-  id          String   @id @default(cuid())
-  formId      String
-  Form        Form     @relation(fields: [formId], references: [id])
-  responseData Json    // Stores response data as JSON
-  s3Url       String   // URL for data stored in S3 bucket
+  id           String       @id @default(uuid())
+  formId       String
+  Form         Form?        @relation(fields: [formId], references: [id])
+  responseData Json         // JSON input for form data
+  s3Url        String       // URL to the stored response JSON
+  createdAt    DateTime     @default(now())
+  Attachments  Attachment[] // Relation to attachments
+}
+
+model Attachment {
+  id          String   @id @default(uuid())
+  responseId  String
+  Response    Response @relation(fields: [responseId], references: [id])
+  fileName    String   // Original name of the file
+  fileUrl     String   // URL to the file stored in S3
+  fileType    String   // MIME type (e.g., image/jpeg, application/pdf)
   createdAt   DateTime @default(now())
 }
 
-// CustomField model to support dynamic fields for each form
 model CustomField {
-  id          String   @id @default(cuid())
+  id          String @id @default(uuid())
   label       String
-  fieldType   String   // e.g., text, number, checkbox, etc.
-  options     Json?    // Options for fields like dropdowns
+  fieldType   String
+  options     Json?
   formId      String
-  Form        Form     @relation(fields: [formId], references: [id])
+  Form        Form @relation(fields: [formId], references: [id])
 }
 
-// Application model to track the form's lifecycle and additional info requests
 model Application {
-  id             String   @id @default(cuid())
-  formId         String
-  Form           Form     @relation(fields: [formId], references: [id])
-  clientId       String
-  status         String   // e.g., submitted, additional info requested, completed
-  additionalInfo Json?    // Additional info requested from the client
-  notifiedAt     DateTime? // Time when client was notified for additional info
-
-  Notification Notification[]
-
-  ApplicationForm ApplicationForm[]
-
-  Service Service[]
+  id               String             @id @default(uuid())
+  formId           String
+  Form             Form               @relation(fields: [formId], references: [id])
+  clientId         String
+  status           String
+  additionalInfo   Json?
+  notifiedAt       DateTime?
+  Notification     Notification[]
+  ApplicationForm  ApplicationForm[]
+  Service          Service[]
 }
 
-// ApplicationForm model as a linking table between Application and Form
 model ApplicationForm {
-  id             String   @id @default(cuid())
+  id             String       @id @default(uuid())
   formId         String
-  Form           Form     @relation(fields: [formId], references: [id])
+  Form           Form         @relation(fields: [formId], references: [id])
   applicationId  String
-  Application    Application @relation(fields: [applicationId], references: [id])
-  createdAt      DateTime @default(now())
+  Application    Application  @relation(fields: [applicationId], references: [id])
+  createdAt      DateTime     @default(now())
 }
 
-// Notification model (Stretch Goal) for client notifications
 model Notification {
-  id             String   @id @default(cuid())
-  applicationId  String
-  Application    Application @relation(fields: [applicationId], references: [id])
-  message        String
-  createdAt      DateTime @default(now())
-}
-
-// FormTemplate model (Stretch Goal) for reusable form templates
-model FormTemplate {
-  id          String @id @default(cuid())
-  title       String
-  description String
-  fields      Json    // JSON structure for form fields to quickly reuse
-  createdAt   DateTime @default(now())
+  id              String        @id @default(uuid())
+  applicationId   String
+  Application     Application   @relation(fields: [applicationId], references: [id])
+  message         String
+  createdAt       DateTime      @default(now())
 }
