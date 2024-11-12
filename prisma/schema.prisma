@@ -48,14 +48,17 @@ model Response {
 }
 
 model Attachment {
-  id          String   @id @default(uuid())
-  responseId  String
-  Response    Response @relation(fields: [responseId], references: [id])
-  fileName    String   // Original name of the file
-  fileUrl     String   // URL to the file stored in S3
-  fileType    String   // MIME type (e.g., image/jpeg, application/pdf)
-  createdAt   DateTime @default(now())
+    id          String   @id @default(uuid())
+    responseId  String
+    fileName    String
+    fileUrl     String
+    fileType    String
+    createdAt   DateTime @default(now())
+    Response    Response @relation(fields: [responseId], references: [id])
+
+    @@unique([responseId, fileName]) // Composite unique constraint
 }
+
 
 model CustomField {
   id          String @id @default(uuid())

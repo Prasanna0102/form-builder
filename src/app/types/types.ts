@@ -127,3 +127,20 @@ export interface SubmitFormInput {
     fileType: string;
   }>
 }
+
+export interface AttachmentInput {
+  fileName: string;
+  fileContent: Buffer | string; // Buffer if binary content, or a string in case of a base64 or other encoding
+  fileType: string;
+}
+
+export interface UpdateFormInput {
+  formId: string;
+  responseId: string;
+  formData: InputJsonValue; // Updated form response data
+  attachments: Array<{
+      fileName: string;
+      fileContent: Buffer | string;
+      fileType: string;
+  }>;
+}
