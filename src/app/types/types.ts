@@ -1,140 +1,109 @@
+// interfaces.ts
+
+import { InputJsonValue } from "@prisma/client/runtime/library";
+
 export interface Service {
-    id: string;
-    title: string;
-    description: string;
-    link?: string;
-    icon: string;
-    forms: Form[];
-    Application: Application[];
-  }
-  
-  export interface Form {
-    id: string;
+  id: string;
+  title: string;
+  description: string;
+  link?: string;
+  icon: string;
+  Forms: Form[];
+  Applications: Application[];
+}
+
+export interface Form {
+  id: string;
+  title: string;
+  description: string;
+  areQuestionsRequired: boolean;
+  conditionalQuestions: InputJsonValue; // JSON input
+  staticQuestions: InputJsonValue; // JSON input
+  isDocumentationRequired: boolean;
+  documentation: string[];
+  isPaymentNeeded: boolean;
+  amount?: number;
+  isNoteNeeded: boolean;
+  serviceId: string;
+  Service: Service;
+  Responses: Response[];
+  CustomFields: CustomField[];
+  ApplicationForms: ApplicationForm[];
+  Application: Application[];
+}
+
+export interface Response {
+  id: string;
+  formId: string;
+  Form: Form;
+  responseData: InputJsonValue; // JSON input
+  s3Url: string;
+  createdAt: Date;
+}
+
+export interface CustomField {
+  id: string;
+  label: string;
+  fieldType: string;
+  options?: InputJsonValue; // JSON for options
+  formId: string;
+  Form: Form;
+}
+
+export interface CreateFormRequestBody {
+  formData: {
     title: string;
     description: string;
     areQuestionsRequired: boolean;
-    conditionalQuestions: Record<string, any>;
-    staticQuestions: Record<string, any>;
+    conditionalQuestions: any;
+    staticQuestions: any;
     isDocumentationRequired: boolean;
     documentation: string[];
     isPaymentNeeded: boolean;
-    amount?: number;
     isNoteNeeded: boolean;
     serviceId: string;
-    ApplicationForm: ApplicationForm[];
-    CustomFields: CustomField[];
-  }
-  
-  export interface CustomField {
-    id: string;
-    formId: string;
-    fieldName: string;
-    fieldType: string;
-    fieldValue: Record<string, any>;
-  }
-  
-  export interface Response {
-    id: string;
-    applicationFormId: string;
-    userId: string;
-    answers: Record<string, any>;
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  
-  export interface User {
-    id: string;
-    firstname: string;
-    lastname: string;
-    email: string;
-    password: string;
-    username: string;
-    roleId: number;
-    createdAt: Date;
-    updatedAt: Date;
-    isVerified: boolean;
-    isBlocked: boolean;
-  }
-  
-  export interface Role {
-    id: number;
-    name: string;
-  }
-  
-  export interface Account {
-    id: string;
-    userId: string;
-    providerType: string;
-    providerId: string;
-    providerAccountId: string;
-    refreshToken?: string;
-    accessToken?: string;
-    accessTokenExpires?: Date;
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  
-  export interface Application {
-    id: string;
-    title: string;
-    status: string;
-    statusColor: string;
-    deadline?: Date;
-    paymentDetails: PaymentDetails[];
-    forms: ApplicationForm[];
-    documentationUploaded: string[];
-    userId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    serviceId: string;
-    totalAmount?: number;
-    additionalInfo?: Record<string, any>;
-  }
-  
-  export interface PaymentDetails {
-    id: string;
-    amount: number;
-    GST: number;
-    applicationId: string;
-    paymentStatus: string;
-    paymentMethod: string;
-    isPartialPayment: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  
-  export interface File {
-    id: string;
-    applicationFormId: string;
-    fileName: string;
-    documentation: string;
-    mimeType: string;
-    filePath: string;
-    createdAt: Date;
-    updatedAt: Date;
-  }
-  
-  export interface ApplicationForm {
-    id: string;
-    applicationId: string;
-    formId: string;
-    File: File[];
-    Response: Response[];
-  }
-  
-  export interface Notification {
-    id: string;
-    userId: string;
-    message: string;
-    isRead: boolean;
-    createdAt: Date;
-  }
-  
-  export interface RequestLog {
-    id: string;
-    userId: string;
-    endpoint: string;
-    method: string;
-    timestamp: Date;
-  }
-  
+  };
+  customFieldsData: Array<{ label: string; fieldType: string; options?: any }>;
+}
+
+export interface Application {
+  id: string;
+  formId: string;
+  Form: Form;
+  clientId: string;
+  status: string;
+  additionalInfo?: InputJsonValue; // JSON for additional info
+  notifiedAt?: Date;
+  Notification: Notification[];
+  ApplicationForm: ApplicationForm[];
+  Service: Service[];
+}
+
+export interface ApplicationForm {
+  id: string;
+  formId: string;
+  Form: Form;
+  applicationId: string;
+  Application: Application;
+  createdAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  applicationId: string;
+  Application: Application;
+  message: string;
+  createdAt: Date;
+}
+
+export interface FormTemplate {
+  id: string;
+  title: string;
+  description: string;
+  fields: InputJsonValue; // JSON for form fields structure
+  createdAt: Date;
+}
+export type FormCreateData = Omit<
+  Form,
+  "id" | "Service" | "Responses" | "CustomFields" | "ApplicationForms" | "Application"
+>;
