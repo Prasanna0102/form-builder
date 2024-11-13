@@ -10,11 +10,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     try {
         const { formData, customFieldsData } = req.body as CreateFormRequestBody;
+
+        if (!formData || !customFieldsData) {
+            return res.status(400).json({ success: false, error: "Missing form data or custom fields" });
+        }
+
         const newForm = await createForm(formData, customFieldsData);
         return res.status(201).json({ success: true, form: newForm });
     } catch (error) {
         console.error("Error Creating Form:", error);
         return res.status(500).json({ success: false, error: "Failed to create form" });
     }
-    
 }
