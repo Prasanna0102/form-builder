@@ -3,7 +3,7 @@ import { prisma } from "../db/prisma";
 export default async function createCustomField(
     formId: string,
     label: string,
-    fieldType: 'text' | 'number' | 'date', // Specific types
+    fieldType: string, // Specific types
     options: any = null // Options is optional and typed as any for flexibility
 ) {
     try {

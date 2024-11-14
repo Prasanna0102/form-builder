@@ -40,6 +40,11 @@ export interface Response {
   Attachments: Attachment[]; // Association with Attachments
 }
 
+export interface RequestAdditionalInfoInput {
+  applicationId: string;
+  additionalInfo: any; // JSON or specific type for additional information
+}
+
 export interface Attachment {
   id: string;
   responseId: string;
@@ -86,6 +91,7 @@ export interface Application {
   Notification: Notification[];
   ApplicationForm: ApplicationForm[];
   Service: Service[];
+  createdAt: Date;
 }
 
 export interface ApplicationForm {

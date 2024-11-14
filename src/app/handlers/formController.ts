@@ -7,20 +7,19 @@ export async function createForm(
 ) {
     if (!formData.serviceId) throw new Error("Service ID is required");
 
-    return await prisma.$transaction(async (prisma) => {
-        const newForm = await prisma.form.create({
-            data: formData,
-        });
-
-        await Promise.all(customFieldsData.map((fieldData) =>
-            prisma.customField.create({
-                data: {
-                    ...fieldData,
-                    formId: newForm.id,
-                },
-            })
-        ));
-
-        return newForm;
+    const newForm = await prisma.form.create({
+        data: formData,
     });
+
+    // Create custom fields in parallel and associate with the new form
+    await Promise.all(customFieldsData.map((fieldData) =>
+        prisma.customField.create({
+            data: {
+                ...fieldData,
+                formId: newForm.id,
+            },
+        })
+    ));
+
+    return newForm;
 }
